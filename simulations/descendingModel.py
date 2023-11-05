@@ -27,6 +27,7 @@ class PIDUsingV:
         return max(min(err * self.kp + self.integral + v * self.kd, self.maximum), self.minimum)
 
 
+# 初始化参数
 mass = 80e3  # 80t
 mass0 = mass
 mass_min = mass0 - 21.6e3
@@ -42,23 +43,33 @@ controller = PIDUsingV()
 controller.init(kp=0.01, ki=0, kd=0.03, upper=0.8, lower=0)
 times = 0
 
+# 初始化数组
 h_array = np.ndarray([simu_limits], dtype=float)
 v_array = np.ndarray([simu_limits], dtype=float)
 ctrl_array = np.ndarray([simu_limits], dtype=float)
 
+# 开始模拟
 while abs(target - h) > 0.2 and -v > 0.1:
+    # 更新控制器
     ctrl = controller.update(target - h, -v)
 
+    # 计算加速度
     F = - mass * g + ctrl * max_thrust
+    # 更新质量
     mass += alpha * ctrl * dt
+    # 计算加速度
     acc = F / mass
+    # 更新速度
     v += acc * dt
+    # 更新高度
     h += v * dt
 
+    # 记录数据
     h_array[times] = h
     v_array[times] = v
     ctrl_array[times] = ctrl
 
+    # 检查是否模拟结束
     if mass < mass_min:
         print("fuel used up")
         break
@@ -69,7 +80,7 @@ while abs(target - h) > 0.2 and -v > 0.1:
         break
 
     if h < 0:
-        print("touch the ground, h:", h, " v:", v)
+        print("touchthe ground, h:", h, " v:", v)
         break
 
 print("simu steps:", times)
